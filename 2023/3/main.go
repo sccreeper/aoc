@@ -6,10 +6,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const numbers string = "1234567890"
-const symbols string = "+-*/@&$#=%"
 
 type side int
 
@@ -34,7 +34,21 @@ func main() {
 		return
 	}
 
+	start := time.Now()
+
 	engine_lines := strings.Split(string(engine_bytes), "\n")
+
+	gears := make([][][]int, len(engine_lines))
+	for i := range gears {
+		gears[i] = make([][]int, len(engine_lines[0]))
+	}
+	for i := range gears {
+		for j := range gears {
+			gears[i][j] = make([]int, 0)
+		}
+	}
+
+	gear_locations := make([][]int, 0)
 
 	valid_numbers := make([]int, 0)
 
@@ -92,39 +106,49 @@ func main() {
 
 				// Now check all sides
 
-				var valid_count int = 0
+				var valid_number bool = false
+				var symbol byte = '.'
+				var gear_location = []int{}
 
-				if slices.Contains(sides, Left) { //Left
+				if slices.Contains(sides, Left) && !valid_number { //Left
 
 					if line[col-1] != '.' {
-						valid_count++
+						symbol = line[col-1]
+						gear_location = []int{col - 1, row}
+						valid_number = true
 					}
 
 				}
 
-				if slices.Contains(sides, Right) { //Right
+				if slices.Contains(sides, Right) && !valid_number { //Right
 
 					if line[col+len(number)] != '.' {
-						valid_count++
+						symbol = line[col+len(number)]
+						gear_location = []int{col + len(number), row}
+						valid_number = true
 					}
 
 				}
 
-				if slices.Contains(sides, Top) { //Top
+				if slices.Contains(sides, Top) && !valid_number { //Top
 
 					for i := col; i < col+len(number); i++ {
 						if engine_lines[row-1][i] != '.' {
-							valid_count++
+							symbol = engine_lines[row-1][i]
+							gear_location = []int{i, row - 1}
+							valid_number = true
 							break
 						}
 					}
 				}
 
-				if slices.Contains(sides, Bottom) { //Top
+				if slices.Contains(sides, Bottom) && !valid_number { //Top
 
 					for i := col; i < col+len(number); i++ {
 						if engine_lines[row+1][i] != '.' {
-							valid_count++
+							symbol = engine_lines[row+1][i]
+							gear_location = []int{i, row + 1}
+							valid_number = true
 							break
 						}
 					}
@@ -132,12 +156,14 @@ func main() {
 
 				// Diagonals
 
-				if slices.Contains(sides, Top) && (slices.Contains(sides, Left) || slices.Contains(sides, Right)) {
+				if slices.Contains(sides, Top) && (slices.Contains(sides, Left) || slices.Contains(sides, Right)) && !valid_number {
 
 					if slices.Contains(sides, Left) {
 
 						if engine_lines[row-1][col-1] != '.' {
-							valid_count++
+							symbol = engine_lines[row-1][col-1]
+							gear_location = []int{col - 1, row - 1}
+							valid_number = true
 						}
 
 					}
@@ -145,26 +171,32 @@ func main() {
 					if slices.Contains(sides, Right) {
 
 						if engine_lines[row-1][col+len(number)] != '.' {
-							valid_count++
+							symbol = engine_lines[row-1][col+len(number)]
+							gear_location = []int{col + len(number), row - 1}
+							valid_number = true
 						}
 
 					}
 
 				}
 
-				if slices.Contains(sides, Bottom) && (slices.Contains(sides, Left) || slices.Contains(sides, Right)) {
+				if slices.Contains(sides, Bottom) && (slices.Contains(sides, Left) || slices.Contains(sides, Right)) && !valid_number {
 
 					if slices.Contains(sides, Left) {
 
 						if engine_lines[row+1][col-1] != '.' {
-							valid_count++
+							symbol = engine_lines[row+1][col-1]
+							gear_location = []int{col - 1, row + 1}
+							valid_number = true
 						}
 
 					}
 
 					if slices.Contains(sides, Right) {
 						if engine_lines[row+1][col+len(number)] != '.' {
-							valid_count++
+							symbol = engine_lines[row+1][col+len(number)]
+							gear_location = []int{col + len(number), row + 1}
+							valid_number = true
 						}
 
 					}
@@ -172,9 +204,29 @@ func main() {
 
 				col += len(number)
 
-				if valid_count > 0 {
+				if valid_number {
 					i, _ := strconv.Atoi(number)
-					valid_numbers = append(valid_numbers, i*valid_count)
+
+					if symbol == '*' {
+
+						gear_exists := false
+
+						for _, gear := range gear_locations {
+							if gear[0] == gear_location[0] && gear[1] == gear_location[1] {
+								gear_exists = true
+								break
+							}
+						}
+
+						if !gear_exists {
+							gear_locations = append(gear_locations, gear_location)
+						}
+
+						gears[gear_location[1]][gear_location[0]] = append(gears[gear_location[1]][gear_location[0]], i)
+
+					}
+
+					valid_numbers = append(valid_numbers, i)
 				}
 
 			}
@@ -184,11 +236,36 @@ func main() {
 	}
 
 	sum := 0
+	ratio_sum := 0
 
+	// P2
+	gear_ratios := make([]int, 0)
+
+	for _, gear := range gear_locations {
+
+		if len(gears[gear[1]][gear[0]]) != 2 {
+			continue
+		} else {
+
+			// I'm not proud of this line
+			gear_ratios = append(gear_ratios, gears[gear[1]][gear[0]][0]*gears[gear[1]][gear[0]][1])
+
+		}
+
+	}
+
+	for _, ratio := range gear_ratios {
+		ratio_sum += ratio
+	}
+
+	// P1
 	for _, x := range valid_numbers {
 		sum += x
 	}
 
 	fmt.Println(sum)
+	fmt.Println(ratio_sum)
+
+	fmt.Printf("Time taken: %s\n", time.Since(start))
 
 }
