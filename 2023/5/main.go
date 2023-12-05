@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"slices"
 	"strconv"
@@ -164,26 +165,45 @@ func part_2(al Almanac) int {
 
 	seeds := make([]int, 0)
 
+	lowest_seeds := make(chan int, len(al.Seeds)/2)
+
 	for i := 0; i < len(al.Seeds); i += 2 {
 
-		fmt.Printf("Seed range %d to %d\n", al.Seeds[i], al.Seeds[i]+al.Seeds[i+1]-1)
+		go func(start int, end int) {
 
-		//Generate range
+			fmt.Printf("Seed range %d to %d\n", start, end-1)
 
-		seed_range := make([]int, 0)
+			//Iterate through range and find number for that range
 
-		for j := al.Seeds[i]; j < al.Seeds[i]+al.Seeds[i+1]; j++ {
-			seed_range = append(seed_range, j)
+			var lowest int = math.MaxInt
+
+			for j := start; j < end; j++ {
+				x := part_1(Almanac{
+					Seeds: []int{j},
+					Maps:  al.Maps,
+				})
+
+				if x < lowest {
+					lowest = x
+				}
+			}
+
+			lowest_seeds <- lowest
+
+		}(al.Seeds[i], al.Seeds[i]+al.Seeds[i+1])
+
+	}
+
+	for {
+
+		if len(seeds) == len(al.Seeds)/2 {
+			break
+		} else {
+
+			seeds = append(seeds, <-lowest_seeds)
+			fmt.Printf("Received %d/%d\n", len(seeds), len(al.Seeds)/2)
+
 		}
-
-		seeds = append(
-			seeds,
-			part_1(Almanac{
-				Seeds: seed_range,
-				Maps:  al.Maps,
-			},
-			),
-		)
 
 	}
 
