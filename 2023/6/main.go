@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Race struct {
@@ -134,7 +135,12 @@ func main() {
 		panic(err)
 	}
 
+	start := time.Now()
 	fmt.Println(part_1(parse_part_1(file_bytes)))
+	fmt.Println(time.Since(start))
+
+	start = time.Now()
 	fmt.Println(part_2(parse_part_2(file_bytes)))
+	fmt.Println(time.Since(start))
 
 }
