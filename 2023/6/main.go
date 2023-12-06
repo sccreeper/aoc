@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -108,19 +109,25 @@ func part_1(races map[int]int) int {
 
 }
 
+func find_root(a int, b int, c int, sign int) int {
+
+	return int(
+		math.Ceil(
+			(float64(-b) - (float64(sign) * (math.Sqrt(float64((b * b) - 4*a*c))))) / float64(2*a),
+		),
+	)
+
+}
+
 func part_2(race [2]int) int {
 
-	var records int
+	// x . (t - x) > d
+	// x . (t - x) = d
+	// x . (t - x) - d = 0
+	// -x^2 + tx - d = 0
+	// a = -1, b = t, c = -d
 
-	for i := 0; i < race[0]; i++ {
-
-		if i*(race[0]-i) > race[1] {
-			records++
-		}
-
-	}
-
-	return records
+	return (find_root(-1, race[0], -race[1], 1) - find_root(-1, race[0], -race[1], -1))
 
 }
 
