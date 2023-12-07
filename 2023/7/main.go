@@ -22,14 +22,19 @@ const (
 )
 
 type Hand struct {
-	Cards string
-	Score HandType
-	Bid   int
+	Cards      string
+	Score      HandType
+	Bid        int
+	CardCounts map[rune]int
 }
 
+//249666369
+
 const alphabet string = "AKQJT98765432"
+const alphabet_part_2 string = "AKQT98765432J"
 
 var letter_scores map[string]int
+var letter_scores_part_2 map[string]int
 
 func n_of_a_kind(cards string, number int) bool {
 
@@ -128,6 +133,26 @@ func is_one_pair(cards string) bool {
 	return n_pair(cards, 1)
 }
 
+func score_hand(cards string) HandType {
+
+	if is_five_of_a_kind(cards) {
+		return FiveOfAKind
+	} else if is_four_of_a_kind(cards) {
+		return FourOfAKind
+	} else if is_full_house(cards) {
+		return FullHouse
+	} else if is_three_of_a_kind(cards) {
+		return ThreeOfAKind
+	} else if is_two_pair(cards) {
+		return TwoPair
+	} else if is_one_pair(cards) {
+		return OnePair
+	} else {
+		return High
+	}
+
+}
+
 func parse_file(data []byte) []Hand {
 
 	hands := make([]Hand, 0)
@@ -138,29 +163,25 @@ func parse_file(data []byte) []Hand {
 
 		bid, _ := strconv.Atoi(strings.Split(v, " ")[1])
 
-		var hand_type HandType
 		cards := strings.Split(v, " ")[0]
 
-		if is_five_of_a_kind(cards) {
-			hand_type = FiveOfAKind
-		} else if is_four_of_a_kind(cards) {
-			hand_type = FourOfAKind
-		} else if is_full_house(cards) {
-			hand_type = FullHouse
-		} else if is_three_of_a_kind(cards) {
-			hand_type = ThreeOfAKind
-		} else if is_two_pair(cards) {
-			hand_type = TwoPair
-		} else if is_one_pair(cards) {
-			hand_type = OnePair
-		} else {
-			hand_type = High
+		card_counts := make(map[rune]int)
+
+		for _, char := range cards {
+
+			if _, ok := card_counts[char]; !ok {
+				card_counts[char] = 1
+			} else {
+				card_counts[char]++
+			}
+
 		}
 
 		hands = append(hands, Hand{
-			Cards: cards,
-			Score: hand_type,
-			Bid:   bid,
+			Cards:      cards,
+			Score:      score_hand(cards),
+			Bid:        bid,
+			CardCounts: card_counts,
 		})
 
 	}
@@ -214,14 +235,110 @@ func part_1(hands []Hand) int {
 	return sum
 }
 
+func get_highest(cards string) string {
+
+	highest_letter := string(cards[0])
+
+	for _, v := range cards {
+		if letter_scores_part_2[string(v)] > letter_scores_part_2[highest_letter] {
+			highest_letter = string(v)
+		}
+	}
+
+	return string(highest_letter)
+
+}
+
+func part_2(hands []Hand) int {
+	// Morph hands
+
+	morphed_hands := make([]Hand, 0)
+
+	for _, v := range hands {
+
+		card_frequencies := make(map[rune]int)
+		for _, card := range v.Cards {
+			card_frequencies[card]++
+		}
+
+		max_card := '\x00'
+		max_number := 0
+
+		for card, number := range card_frequencies {
+			if number > max_number && string(card) != "J" {
+				max_number = number
+				max_card = card
+			}
+		}
+
+		if max_number == 0 {
+			morphed_hands = append(morphed_hands, v)
+		} else {
+			morphed_hands = append(
+				morphed_hands,
+				Hand{
+					Cards:      strings.Replace(v.Cards, "J", string(max_card), -1),
+					Score:      score_hand(strings.Replace(v.Cards, "J", string(max_card), -1)),
+					Bid:        v.Bid,
+					CardCounts: card_frequencies,
+				},
+			)
+		}
+
+	}
+
+	hands = morphed_hands
+
+	slices.SortStableFunc(hands, func(a, b Hand) int {
+
+		var result int
+
+		if a.Score == b.Score {
+			for i := 0; i < len(a.Cards); i++ {
+				if letter_scores_part_2[string(a.Cards[i])] > letter_scores_part_2[string(b.Cards[i])] {
+					result = 1
+					break
+				} else if letter_scores_part_2[string(a.Cards[i])] < letter_scores_part_2[string(b.Cards[i])] {
+					result = -1
+					break
+				}
+			}
+		} else if a.Score > b.Score {
+			result = 1
+		} else if a.Score < b.Score {
+			result = -1
+		}
+
+		return result
+
+	})
+
+	var sum int
+
+	for i, v := range hands {
+
+		sum += (i + 1) * v.Bid
+
+	}
+
+	return sum
+
+}
+
 func init() {
 
 	alphabet_reversed := reverse(alphabet)
+	alphabet_part_2_reversed := reverse(alphabet_part_2)
 
 	letter_scores = make(map[string]int)
+	letter_scores_part_2 = make(map[string]int)
 
 	for i, v := range alphabet_reversed {
 		letter_scores[string(v)] = i + 1
+	}
+
+	for i, v := range alphabet_part_2_reversed {
+		letter_scores_part_2[string(v)] = i + 1
 	}
 
 }
@@ -238,5 +355,6 @@ func main() {
 	}
 
 	fmt.Println(part_1(parse_file(file_bytes)))
+	fmt.Println(part_2(parse_file(file_bytes)))
 
 }
