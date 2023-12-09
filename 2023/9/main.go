@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func parse_file(data []byte) (sequences [][]int) {
@@ -112,6 +113,31 @@ func part_1(sequences [][]int) int {
 
 }
 
+func part_2(sequences [][]int) int {
+
+	var sum int = 0
+
+	for _, s := range sequences {
+
+		// Get amount to add
+
+		diffs := get_sequence(s)
+		slices.Reverse(diffs)
+
+		total := 0
+
+		for i := 0; i < len(diffs); i++ {
+			total = diffs[i][0] - total
+		}
+
+		sum += s[0] - total
+
+	}
+
+	return sum
+
+}
+
 func main() {
 
 	var file_name string
@@ -123,6 +149,11 @@ func main() {
 		panic(err)
 	}
 
+	start := time.Now()
+
 	fmt.Println(part_1(parse_file(file_data)))
+	fmt.Println(part_2(parse_file(file_data)))
+
+	fmt.Println(time.Since(start))
 
 }
