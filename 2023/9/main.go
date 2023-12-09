@@ -33,11 +33,6 @@ func parse_file(data []byte) (sequences [][]int) {
 
 }
 
-type Polynomial struct {
-	HighestPower int
-	Coefficients []float64
-}
-
 func get_differences(numbers []int) (result []int) {
 
 	result = make([]int, 0)
