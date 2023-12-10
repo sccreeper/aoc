@@ -179,9 +179,15 @@ func parse_file(data []byte) ([2]int, [][]PipeNode) {
 
 }
 
-func part_1(start [2]int, nodes [][]PipeNode) int {
+func traverse(start [2]int, nodes [][]PipeNode) (steps int, visited [][]bool) {
 
-	var steps int = 0
+	steps = 0
+	visited = make([][]bool, len(nodes))
+
+	for i := 0; i < len(nodes); i++ {
+		visited[i] = make([]bool, len(nodes[0]))
+	}
+
 	var current_node *PipeNode
 	var previous_node *PipeNode
 	var s_found = false
@@ -195,6 +201,8 @@ func part_1(start [2]int, nodes [][]PipeNode) int {
 	}
 
 	for !s_found {
+
+		visited[current_node.Location[1]][current_node.Location[0]] = true
 
 		if current_node.Connections[0] == previous_node {
 			previous_node = current_node
@@ -212,7 +220,72 @@ func part_1(start [2]int, nodes [][]PipeNode) int {
 
 	}
 
+	return
+
+}
+
+func part_1(start [2]int, nodes [][]PipeNode) int {
+
+	steps, _ := traverse(start, nodes)
+
 	return (steps + 1) / 2
+
+}
+
+func part_2(start [2]int, nodes [][]PipeNode) (area int) {
+
+	area = 0
+	_, nodes_visited := traverse(start, nodes)
+	fmt.Println(len(nodes_visited))
+
+	var previous_pipe Pipe
+	var inside bool
+
+	for y := 0; y < len(nodes_visited); y++ {
+
+		for x := 0; x < len(nodes_visited[0]); x++ {
+
+			if nodes_visited[y][x] == true {
+
+				switch nodes[y][x].Type {
+				case VerticalPipe:
+					inside = !inside
+				case HorizontalPipe:
+				default:
+					if previous_pipe == Ground {
+
+						previous_pipe = nodes[y][x].Type
+						inside = !inside
+
+					} else {
+
+						if (previous_pipe == NorthWestBend && nodes[y][x].Type == NorthEastBend) ||
+							(previous_pipe == NorthEastBend && nodes[y][x].Type == NorthWestBend) ||
+							(previous_pipe == SouthWestBend && nodes[y][x].Type == SouthEastBend) ||
+							(previous_pipe == SouthEastBend && nodes[y][x].Type == SouthWestBend) {
+							inside = !inside
+						}
+						previous_pipe = Ground
+
+					}
+				}
+
+			} else {
+
+				previous_pipe = Ground
+				if inside {
+					area++
+				}
+
+			}
+
+		}
+
+		inside = false
+
+	}
+
+	return
 
 }
 
@@ -232,6 +305,7 @@ func main() {
 	start, nodes := parse_file(file_data)
 
 	fmt.Println(part_1(start, nodes))
+	fmt.Println(part_2(start, nodes))
 
 	fmt.Println(time.Since(used))
 
