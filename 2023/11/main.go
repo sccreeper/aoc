@@ -23,7 +23,7 @@ func gen_string(char rune, len int) (result string) {
 
 }
 
-func parse_file(data []byte, expansion_amount int) (galaxies []Galaxy) {
+func parse_file(data []byte, expansion_amount int) (galaxies []Galaxy, rows []int, columns []int) {
 
 	galaxies = make([]Galaxy, 0)
 
@@ -31,8 +31,8 @@ func parse_file(data []byte, expansion_amount int) (galaxies []Galaxy) {
 
 	//Find rows & columns with no galaxies
 
-	rows := make([]int, 0)
-	columns := make([]int, 0)
+	rows = make([]int, 0)
+	columns = make([]int, 0)
 
 	for y := 0; y < len(lines); y++ {
 
@@ -172,6 +172,62 @@ func part_1(galaxies []Galaxy) (sum int) {
 
 }
 
+func part_2(galaxies []Galaxy, rows []int, columns []int) (sum int) {
+
+	var transform int = int(math.Pow10(6)) - 1
+
+	sum = 0
+
+	done_galaxies := make([][]int, len(galaxies))
+
+	for i := 0; i < len(galaxies); i++ {
+		done_galaxies[i] = make([]int, 0)
+	}
+
+	for j, v := range galaxies {
+
+		for i := 0; i < len(galaxies); i++ {
+
+			if galaxies[i].PosX == v.PosX && galaxies[i].PosY == v.PosY {
+				continue
+			} else {
+
+				if !slices.Contains(done_galaxies[i], j) {
+					done_galaxies[j] = append(done_galaxies[j], i)
+
+					//Calculate distance
+
+					scale_factor := 0
+
+					for _, row := range rows {
+						if v.PosY < row && galaxies[i].PosY > row {
+							scale_factor++
+						} else if v.PosY > galaxies[i].PosY && v.PosY > row && galaxies[i].PosY < row {
+							scale_factor++
+						}
+					}
+
+					for _, column := range columns {
+						if v.PosX < column && galaxies[i].PosX > column {
+							scale_factor++
+						} else if v.PosX > galaxies[i].PosX && v.PosX > column && galaxies[i].PosX < column {
+							scale_factor++
+						}
+					}
+
+					sum += get_distance(v, galaxies[i]) + (transform * scale_factor)
+				}
+
+			}
+
+		}
+
+	}
+
+	return
+
+}
+
 func main() {
 
 	var file_name string
@@ -183,7 +239,10 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(part_1(parse_file(file_data, 1)))
+	galaxies, _, _ := parse_file(file_data, 1)
+	fmt.Println(part_1(galaxies))
+
+	fmt.Println(part_2(parse_file(file_data, 0)))
 	//fmt.Println(part_1(parse_file(file_data, int(math.Pow10(6)-1))))
 
 }
