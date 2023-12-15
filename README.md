@@ -26,3 +26,5 @@ Repo with all advent of code attempts.
 | 9   | **    | [🔗](https://github.com/sccreeper/aoc/blob/main/2023/9/main.go)  |
 | 10  | *     | [🔗](https://github.com/sccreeper/aoc/blob/main/2023/10/main.go) |
 | 11  | **    | [🔗](https://github.com/sccreeper/aoc/blob/main/2023/11/main.go) |
+| 12  |       |                                                                 |
+| 13  |       |                                                                 |
