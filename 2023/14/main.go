@@ -8,11 +8,19 @@ import (
 )
 
 type Tile rune
+type Direction byte
 
 const (
 	CubeRock  Tile = '#'
 	RoundRock Tile = 'O'
 	Empty     Tile = '.'
+)
+
+const (
+	North Direction = 0
+	South Direction = 1
+	East  Direction = 2
+	West  Direction = 3
 )
 
 func parse_file(data []byte) (tiles [][]Tile) {
@@ -42,7 +50,49 @@ func parse_file(data []byte) (tiles [][]Tile) {
 
 }
 
-func part_1(tiles [][]Tile) (sum int) {
+func oob_check(dir Direction, i int, j int, w int, h int) bool {
+
+	switch dir {
+	case North:
+		return i-1 < 0
+	case South:
+		return i+1 >= h
+	case East:
+		return j-1 < 0
+	case West:
+		return i+1 >= w
+	default:
+		return false
+	}
+
+}
+
+func empty_check(dir Direction, i int, j int) (i_new int, j_new int) {
+
+	switch dir {
+	case North:
+		i_new = i - 1
+		j_new = j
+		return
+	case South:
+		i_new = i + 1
+		j_new = j
+		return
+	case East:
+		i_new = i
+		j_new = j - 1
+		return
+	case West:
+		i_new = i
+		j_new = j + 1
+		return
+	default:
+		return
+	}
+
+}
+
+func tilt(dir Direction, tiles [][]Tile) [][]Tile {
 
 	var moved int = 1
 
@@ -56,9 +106,11 @@ func part_1(tiles [][]Tile) (sum int) {
 
 			for j := 0; j < len(tiles[0]); j++ {
 
-				if tiles[i][j] == RoundRock && i-1 >= 0 && tiles[i-1][j] == Empty {
+				new_i, new_j := empty_check(dir, i, j)
 
-					tiles[i-1][j] = RoundRock
+				if tiles[i][j] == RoundRock && !oob_check(dir, i, j, len(tiles[0]), len(tiles)) && tiles[new_i][new_j] == Empty {
+
+					tiles[new_i][new_j] = RoundRock
 					tiles[i][j] = Empty
 
 					moved++
@@ -72,6 +124,12 @@ func part_1(tiles [][]Tile) (sum int) {
 		}
 
 	}
+
+	return tiles
+
+}
+
+func calculate_load(tiles [][]Tile) (sum int) {
 
 	//Calculate load
 
@@ -95,6 +153,32 @@ func part_1(tiles [][]Tile) (sum int) {
 
 }
 
+func part_1(tiles [][]Tile) (sum int) {
+
+	tiles = tilt(North, tiles)
+	sum = calculate_load(tiles)
+
+	return
+
+}
+
+func part_2(tiles [][]Tile) (load int) {
+
+	for i := 0; i < 1000000000; i++ {
+
+		tiles = tilt(North, tiles)
+		tiles = tilt(West, tiles)
+		tiles = tilt(East, tiles)
+		tiles = tilt(South, tiles)
+
+	}
+
+	load = calculate_load(tiles)
+
+	return
+
+}
+
 func main() {
 
 	var file_name string
@@ -107,5 +191,6 @@ func main() {
 	}
 
 	fmt.Println(part_1(parse_file(file_data)))
+	fmt.Println(part_2(parse_file(file_data)))
 
 }
