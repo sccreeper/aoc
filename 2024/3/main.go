@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+type mulInstruction struct {
+	DoMultiply bool
+	Num1       int
+	Num2       int
+}
+
 const validStart = "mul("
 const validEnd = ')'
 
@@ -16,85 +22,8 @@ const dontMultiply = "don't()"
 
 const validChars = "1234567890,"
 
-func parseData(data []byte) (result [][]int) {
-
-	result = make([][]int, 0)
-	stringResult := make([]string, 0)
-
-	dataString := string(data)
-
-	var inInstruction = false
-
-	var currentInstruction = ""
-
-	for i := 0; i < len(dataString); i++ {
-
-		if i+len(validStart) > len(dataString) && !inInstruction {
-			break
-		} else if !inInstruction && dataString[i:i+len(validStart)] == validStart {
-
-			inInstruction = true
-			i += len(validStart) - 1
-
-		} else if inInstruction {
-
-			if strings.Contains(validChars, string(dataString[i])) {
-				currentInstruction += string(dataString[i])
-			} else if !strings.Contains(validChars, string(dataString[i])) && dataString[i] != validEnd {
-
-				i = (i - len(currentInstruction))
-				currentInstruction = ""
-				inInstruction = false
-
-				continue
-
-			} else if dataString[i] == validEnd {
-
-				inInstruction = false
-
-				stringResult = append(stringResult, currentInstruction)
-				currentInstruction = ""
-
-			}
-
-		}
-
-	}
-
-	for _, s := range stringResult {
-
-		nums := strings.Split(s, ",")
-		num1, err := strconv.Atoi(nums[0])
-		if err != nil {
-			panic(err)
-		}
-
-		num2, err := strconv.Atoi(nums[1])
-		if err != nil {
-			panic(err)
-		}
-
-		result = append(result, []int{num1, num2})
-
-	}
-
-	return
-
-}
-
-func partOne(data [][]int) (total int) {
-
-	for _, v := range data {
-
-		total += v[0] * v[1]
-
-	}
-
-	return
-
-}
-
-func partTwo(data []byte) (total int) {
+func parseData(data []byte) (result []mulInstruction) {
+	result = make([]mulInstruction, 0)
 
 	dataString := string(data)
 
@@ -145,16 +74,42 @@ func partTwo(data []byte) (total int) {
 					panic(err)
 				}
 
-				if multiply {
-
-					total += num1 * num2
-
-				}
+				result = append(result, mulInstruction{
+					Num1:       num1,
+					Num2:       num2,
+					DoMultiply: multiply,
+				})
 
 				currentInstruction = ""
 
 			}
 
+		}
+
+	}
+
+	return
+
+}
+
+func partOne(data []mulInstruction) (total int) {
+
+	for _, v := range data {
+
+		total += v.Num1 * v.Num2
+
+	}
+
+	return
+
+}
+
+func partTwo(data []mulInstruction) (total int) {
+
+	for _, v := range data {
+
+		if v.DoMultiply {
+			total += v.Num1 * v.Num2
 		}
 
 	}
@@ -170,5 +125,5 @@ func main() {
 	}
 
 	fmt.Println(partOne(parseData(bytes)))
-	fmt.Println(partTwo(bytes))
+	fmt.Println(partTwo(parseData(bytes)))
 }
