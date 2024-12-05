@@ -142,6 +142,95 @@ func partOne(orderingRules map[int][]int, updateNumbers [][]int) (result int) {
 	return
 }
 
+func partTwo(orderingRules map[int][]int, updateNumbers [][]int) (result int) {
+
+	incorrectlyOrdered := make([][]int, 0)
+
+	for _, v := range updateNumbers {
+
+		for i := 1; i < len(v); i++ {
+
+			if hasIntersection(v[:i], orderingRules[v[i]]) {
+				incorrectlyOrdered = append(incorrectlyOrdered, v)
+				break
+			}
+
+		}
+
+	}
+
+	// Order the incorrect arrays
+
+	for i := 0; i < len(incorrectlyOrdered); i++ {
+
+		var hasIntersections = true
+
+		for hasIntersections {
+
+			var j int = 0
+
+			for j < len(incorrectlyOrdered[i]) {
+
+				if hasIntersection(incorrectlyOrdered[i][:j], orderingRules[incorrectlyOrdered[i][j]]) {
+
+					// Get indexes it needs to be before
+
+					badIndexes := make([]int, 0)
+
+					for _, k := range orderingRules[incorrectlyOrdered[i][j]] {
+
+						idx := slices.Index(incorrectlyOrdered[i], k)
+						if idx != -1 {
+							badIndexes = append(badIndexes, idx)
+						}
+
+					}
+
+					var moveIndex int
+					slices.Sort(badIndexes)
+					moveIndex = badIndexes[0]
+
+					moveNum := incorrectlyOrdered[i][j]
+
+					// Remove item
+					incorrectlyOrdered[i] = append(incorrectlyOrdered[i][:j], incorrectlyOrdered[i][j+1:]...)
+
+					// Add item at "correct index"
+
+					incorrectlyOrdered[i] = append(
+						incorrectlyOrdered[i][:moveIndex],
+						append(
+							[]int{moveNum},
+							incorrectlyOrdered[i][moveIndex:]...,
+						)...,
+					)
+
+					j = 0
+
+				} else {
+					j++
+				}
+
+			}
+
+			hasIntersections = false
+
+		}
+
+	}
+
+	// Get middle numbers and add
+
+	for _, v := range incorrectlyOrdered {
+
+		result += v[len(v)/2]
+
+	}
+
+	return
+
+}
+
 func main() {
 
 	bytes, err := io.ReadAll(os.Stdin)
@@ -151,5 +240,6 @@ func main() {
 
 	orderingRules, updateNumbers := parseData(bytes)
 	fmt.Println(partOne(orderingRules, updateNumbers))
+	fmt.Println(partTwo(orderingRules, updateNumbers))
 
 }
