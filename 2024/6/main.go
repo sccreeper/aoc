@@ -113,6 +113,17 @@ func partOne(mapRows [][]byte, guardPosX int, guardPosY int) (totalVisited int) 
 
 }
 
+// I will try this another time
+// Tried like 3 different implementations and none of them worked.
+
+func checkForLoop() {
+
+}
+
+func partTwo(mapRows [][]byte, guardPosX int, guardPosY int) (totalLoops int) {
+	return
+}
+
 func main() {
 
 	bytes, err := io.ReadAll(os.Stdin)
@@ -124,5 +135,6 @@ func main() {
 	fmt.Printf("Guard X: %d Guard Y: %d\n", guardPosX, guardPosY)
 
 	fmt.Println(partOne(mapRows, guardPosX, guardPosY))
+	fmt.Printf("\nTotal loops: %d\n", partTwo(mapRows, guardPosX, guardPosY))
 
 }
