@@ -114,7 +114,55 @@ func partOne(nodeMap map[byte][]Node, width int, height int) (total int) {
 
 	}
 
-	fmt.Println(antiNodePositions)
+	return len(antiNodePositions)
+
+}
+
+func partTwo(nodeMap map[byte][]Node, width int, height int) (total int) {
+
+	antiNodePositions := make([][2]int, 0)
+
+	for _, nodes := range nodeMap {
+
+		for i := 0; i < len(nodes); i++ {
+
+			for j := 0; j < len(nodes); j++ {
+				if nodes[i].X == nodes[j].X && nodes[i].Y == nodes[j].Y {
+					continue
+				}
+
+				diff := [2]int{
+					nodes[i].X - nodes[j].X,
+					nodes[i].Y - nodes[j].Y,
+				}
+
+				var antiNodePos [2]int = [2]int{nodes[i].X, nodes[i].Y}
+				if !containsPos(antiNodePositions, antiNodePos) {
+					antiNodePositions = append(antiNodePositions, antiNodePos)
+				}
+
+				var inBounds bool = true
+
+				for inBounds {
+					antiNodePos = [2]int{
+						antiNodePos[0] + diff[0],
+						antiNodePos[1] + diff[1],
+					}
+
+					if antiNodePos[0] >= 0 && antiNodePos[0] < width && antiNodePos[1] >= 0 && antiNodePos[1] < height {
+						if !containsPos(antiNodePositions, antiNodePos) {
+							antiNodePositions = append(antiNodePositions, antiNodePos)
+						}
+					} else {
+						inBounds = false
+					}
+				}
+
+			}
+
+		}
+
+	}
 
 	return len(antiNodePositions)
 
@@ -130,5 +178,6 @@ func main() {
 	parsed, width, height := parseData(data)
 
 	fmt.Println(partOne(parsed, width, height))
+	fmt.Println(partTwo(parsed, width, height))
 
 }
