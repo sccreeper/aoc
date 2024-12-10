@@ -86,13 +86,15 @@ func prettyifyTrailMap(trailMap [][]Node) (prettified string) {
 
 }
 
-func walk(trailMap [][]Node, position [2]int) (hits int) {
+func walk(trailMap [][]Node, position [2]int, partTwo bool) (hits int) {
 
 	var ableToContinue bool = true
 
 	for ableToContinue {
 
-		trailMap[position[1]][position[0]].Visited = true
+		if !partTwo {
+			trailMap[position[1]][position[0]].Visited = true
+		}
 
 		if trailMap[position[1]][position[0]].Value == 9 {
 			return 1
@@ -127,7 +129,7 @@ func walk(trailMap [][]Node, position [2]int) (hits int) {
 
 			for _, b := range possibleBranches {
 
-				newHits := walk(trailMap, b)
+				newHits := walk(trailMap, b, partTwo)
 				if newHits >= 1 {
 					hits += newHits
 				}
@@ -153,7 +155,26 @@ func partOne(trailMap [][]Node, headPositions [][2]int) (total int) {
 			}
 		}
 
-		newHits := walk(trailMap, v)
+		newHits := walk(trailMap, v, false)
+		total += newHits
+
+	}
+
+	return
+}
+
+func partTwo(trailMap [][]Node, headPositions [][2]int) (total int) {
+
+	for _, v := range headPositions {
+
+		// Reset trail map visited positions
+		for y := 0; y < len(trailMap); y++ {
+			for x := 0; x < len(trailMap[0]); x++ {
+				trailMap[y][x].Visited = false
+			}
+		}
+
+		newHits := walk(trailMap, v, true)
 		total += newHits
 
 	}
@@ -169,4 +190,5 @@ func main() {
 
 	trailMap, headPositions := parseData(data)
 	fmt.Println(partOne(trailMap, headPositions))
+	fmt.Println(partTwo(trailMap, headPositions))
 }
