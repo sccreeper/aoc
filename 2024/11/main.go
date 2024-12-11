@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func parseData(data []byte) (stones []int) {
@@ -66,6 +67,32 @@ func partOne(stones []int, blinks int) (totalStones int) {
 	return
 }
 
+func partTwo(stones []int, blinks int) (totalStones int) {
+
+	var totalChannel chan int = make(chan int)
+	defer close(totalChannel)
+
+	var wg sync.WaitGroup
+
+	for _, v := range stones {
+
+		go func(total chan int, val int) {
+
+			totalChannel <- partOne([]int{val}, blinks)
+
+		}(totalChannel, v)
+
+	}
+
+	wg.Wait()
+
+	for i := 0; i < len(stones); i++ {
+		totalStones += <-totalChannel
+	}
+
+	return
+}
+
 func main() {
 
 	data, err := io.ReadAll(os.Stdin)
@@ -75,5 +102,7 @@ func main() {
 
 	parsed := parseData(data)
 	fmt.Printf("Part one: %d\n", partOne(parsed, 25))
+	parsed = parseData(data)
+	fmt.Printf("Part two: %d\n", partTwo(parsed, 75))
 
 }
