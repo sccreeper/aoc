@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
+	"time"
 )
 
 func parseData(data []byte) (stones []int) {
@@ -67,27 +67,75 @@ func partOne(stones []int, blinks int) (totalStones int) {
 	return
 }
 
+func countStones(stones map[int]int) (total int) {
+	for _, v := range stones {
+		total += v
+	}
+
+	return
+}
+
 func partTwo(stones []int, blinks int) (totalStones int) {
 
-	var totalChannel chan int = make(chan int)
-	defer close(totalChannel)
+	var stoneMap map[int]int = make(map[int]int)
+	var newStoneMap map[int]int = make(map[int]int)
 
-	var wg sync.WaitGroup
+	// Populate dict initially
 
 	for _, v := range stones {
+		if _, exists := stoneMap[v]; exists {
+			stoneMap[v]++
+		} else {
+			stoneMap[v] = 1
+		}
+	}
 
-		go func(total chan int, val int) {
+	for i := 0; i < blinks; i++ {
 
-			totalChannel <- partOne([]int{val}, blinks)
+		// Order keys
 
-		}(totalChannel, v)
+		stoneKeys := make([]int, len(stoneMap))
+		var j int = 0
+		for k := range stoneMap {
+			stoneKeys[j] = k
+			j++
+		}
+		slices.Sort(stoneKeys)
+
+		newStoneMap = make(map[int]int)
+
+		for _, stone := range stoneKeys {
+			total := stoneMap[stone]
+
+			if total == 0 {
+				continue
+			}
+
+			if stone == 0 {
+				newStoneMap[1] += total
+			} else if len(strconv.Itoa(stone))%2 == 0 {
+
+				digits := strconv.Itoa(stone)
+				numLeft, _ := strconv.Atoi(digits[:len(digits)/2])
+				numRight, _ := strconv.Atoi(digits[(len(digits) / 2):])
+
+				newStoneMap[numRight] += total
+				newStoneMap[numLeft] += total
+
+			} else {
+				newK := stone * 2024
+				newStoneMap[newK] += total
+
+			}
+
+		}
+
+		stoneMap = newStoneMap
 
 	}
 
-	wg.Wait()
-
-	for i := 0; i < len(stones); i++ {
-		totalStones += <-totalChannel
+	for _, v := range stoneMap {
+		totalStones += v
 	}
 
 	return
@@ -101,8 +149,13 @@ func main() {
 	}
 
 	parsed := parseData(data)
-	fmt.Printf("Part one: %d\n", partOne(parsed, 25))
+	startTime := time.Now().UnixMilli()
+	fmt.Printf("\n25 blinks P1: %d\n", partOne(parsed, 25))
+	fmt.Println(time.Now().UnixMilli() - startTime)
+
 	parsed = parseData(data)
-	fmt.Printf("Part two: %d\n", partTwo(parsed, 75))
+	startTime = time.Now().UnixMilli()
+	fmt.Printf("\n75 blinks P2: %d\n", partTwo(parsed, 75))
+	fmt.Println(time.Now().UnixMilli() - startTime)
 
 }
