@@ -87,51 +87,55 @@ func prettifyMap(robots map[[2]int][]robot) {
 
 }
 
-func partOne(robots map[[2]int][]robot) (result int) {
+func step(robots map[[2]int][]robot) map[[2]int][]robot {
 
-	for i := 0; i < 100; i++ {
+	newRobots := make(map[[2]int][]robot, 0)
 
-		newRobots := make(map[[2]int][]robot, 0)
+	for _, v := range robots {
 
-		for _, v := range robots {
+		for _, r := range v {
 
-			for _, r := range v {
-
-				newPos := [2]int{
-					r.Pos[0] + r.Velocity[0],
-					r.Pos[1] + r.Velocity[1],
-				}
-
-				if newPos[0] < 0 {
-					newPos[0] += spaceWidth
-				}
-
-				if newPos[0] >= spaceWidth {
-					newPos[0] -= spaceWidth
-				}
-
-				if newPos[1] < 0 {
-					newPos[1] += spaceHeight
-				}
-
-				if newPos[1] >= spaceHeight {
-					newPos[1] -= spaceHeight
-				}
-
-				newRobots[newPos] = append(
-					newRobots[newPos],
-					robot{
-						Pos:      newPos,
-						Velocity: r.Velocity,
-					},
-				)
-
+			newPos := [2]int{
+				r.Pos[0] + r.Velocity[0],
+				r.Pos[1] + r.Velocity[1],
 			}
+
+			if newPos[0] < 0 {
+				newPos[0] += spaceWidth
+			}
+
+			if newPos[0] >= spaceWidth {
+				newPos[0] -= spaceWidth
+			}
+
+			if newPos[1] < 0 {
+				newPos[1] += spaceHeight
+			}
+
+			if newPos[1] >= spaceHeight {
+				newPos[1] -= spaceHeight
+			}
+
+			newRobots[newPos] = append(
+				newRobots[newPos],
+				robot{
+					Pos:      newPos,
+					Velocity: r.Velocity,
+				},
+			)
 
 		}
 
-		robots = newRobots
+	}
 
+	return newRobots
+
+}
+
+func partOne(robots map[[2]int][]robot) (result int) {
+
+	for i := 0; i < 100; i++ {
+		robots = step(robots)
 	}
 
 	quadWidth := (spaceWidth / 2) - 1
@@ -185,6 +189,52 @@ func partOne(robots map[[2]int][]robot) (result int) {
 
 }
 
+func partTwo(robots map[[2]int][]robot) (steps int) {
+
+	var christmasTree bool
+
+	for !christmasTree {
+
+		robots = step(robots)
+		steps++
+
+		for k, _ := range robots {
+
+			if k[0]+3 >= spaceWidth || k[1]+3 >= spaceHeight {
+				continue
+			} else {
+
+				christmasTree = true
+
+				for y := k[1]; y < k[1]+3; y++ {
+					for x := k[0]; x < k[0]+3; x++ {
+
+						if robots[[2]int{x, y}] == nil {
+							christmasTree = false
+							break
+						}
+
+					}
+
+					if !christmasTree {
+						break
+					}
+				}
+
+				if christmasTree {
+					break
+				}
+
+			}
+
+		}
+
+	}
+
+	return
+
+}
+
 func main() {
 
 	data, err := io.ReadAll(os.Stdin)
@@ -193,7 +243,9 @@ func main() {
 	}
 
 	parsed := parseData(data)
-
 	fmt.Println(partOne(parsed))
+
+	parsed = parseData(data)
+	fmt.Println(partTwo(parsed))
 
 }
