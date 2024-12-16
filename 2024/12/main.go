@@ -90,7 +90,7 @@ const emptySpace = '.'
 func containsFlower(f *Flower, flowers []*Flower) bool {
 
 	for _, v := range flowers {
-		if v.Position[0] == f.Position[0] && v.Position[1] == v.Position[1] && v.Value == f.Value {
+		if v.Position[0] == f.Position[0] && v.Position[1] == f.Position[1] && v.Value == f.Value {
 			return true
 		}
 	}
@@ -218,6 +218,10 @@ func partOne(flowers [][]*Flower) (total int) {
 
 	return
 
+}
+
+func partTwo(flowers [][]*Flower) (total int) {
+	return
 }
 
 func main() {
