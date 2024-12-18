@@ -136,7 +136,7 @@ func prettifyMap(maze [][]byte) {
 
 }
 
-func partOne(maze [][]byte, instructions []byte, robotPos [2]int) (result int) {
+func executeInstructions(maze [][]byte, instructions []byte, robotPos [2]int) {
 
 	// fmt.Println(string(instructions))
 
@@ -198,6 +198,12 @@ func partOne(maze [][]byte, instructions []byte, robotPos [2]int) (result int) {
 
 	}
 
+}
+
+func partOne(maze [][]byte, instructions []byte, robotPos [2]int) (result int) {
+
+	executeInstructions(maze, instructions, robotPos)
+
 	for y := 0; y < len(maze); y++ {
 		for x := 0; x < len(maze[0]); x++ {
 
@@ -213,6 +219,70 @@ func partOne(maze [][]byte, instructions []byte, robotPos [2]int) (result int) {
 }
 
 func partTwo(maze [][]byte, instructions []byte, robotPos [2]int) {
+
+	for _, v := range instructions {
+
+		lookDirection := directionVectors[v]
+		newPos := [2]int{robotPos[0] + lookDirection[0], robotPos[1] + lookDirection[1]}
+
+		if newPos[0] <= 0 || newPos[1] <= 0 || newPos[0] >= len(maze[0])-1 || newPos[1] >= len(maze)-1 {
+			continue
+		} else if maze[newPos[1]][newPos[0]] == obstruction {
+			continue
+		}
+
+		if maze[newPos[1]][newPos[0]] == box {
+
+			var ableToMove bool
+			var boxCount int
+
+			lookPos := newPos
+
+			for {
+
+				if lookPos[0] <= 0 || lookPos[1] <= 0 || lookPos[0] >= len(maze[0])-1 || lookPos[1] >= len(maze)-1 {
+					break
+				} else if maze[lookPos[1]][lookPos[0]] == obstruction {
+					break
+				}
+
+				if v == directionUp || v == directionDown {
+
+					if boxCount == 0 {
+
+					}
+
+				}
+
+				if maze[lookPos[1]][lookPos[0]] == emptySpace {
+					ableToMove = true
+					break
+				}
+
+				lookPos = [2]int{lookPos[0] + lookDirection[0], lookPos[1] + lookDirection[1]}
+
+			}
+
+			if ableToMove {
+
+				// Swap boxes around
+
+				maze[robotPos[1]][robotPos[0]] = emptySpace
+				maze[newPos[1]][newPos[0]] = robot
+				maze[lookPos[1]][lookPos[0]] = box
+
+				robotPos = newPos
+
+			}
+
+		} else if maze[newPos[1]][newPos[0]] == emptySpace {
+			maze[robotPos[1]][robotPos[0]] = emptySpace
+			maze[newPos[1]][newPos[0]] = robot
+
+			robotPos = newPos
+		}
+
+	}
 
 }
 
